@@ -14,7 +14,7 @@ enum Category {
 }
 
 model User {
-  user_id           Int      @id @default(autoincrement())
+  user_id           String      @id @default(cuid())
   password_hash     String?          
   email             String   @unique
   created_at        DateTime @default(now())
@@ -63,7 +63,7 @@ model Trip {
   start_date  DateTime?
   end_date    DateTime?
 
-  user_id Int
+  user_id String
   user    User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
 
   city_id Int?            // trip destination city 

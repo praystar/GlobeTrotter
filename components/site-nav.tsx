@@ -2,8 +2,10 @@
 
 import { Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useClerk } from "@clerk/nextjs"
 
 export function SiteNav() {
+  const { openSignIn } = useClerk()
   return (
     <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6">
@@ -18,7 +20,12 @@ export function SiteNav() {
           <a className="hover:underline" href="#contact">Contact Us</a>
         </nav>
         <div className="flex items-center justify-end">
-          <Button className="h-10 rounded-full px-5">Login</Button>
+          <Button
+            className="h-10 rounded-full px-5"
+            onClick={() => openSignIn()} 
+          >
+            Login
+          </Button>
         </div>
       </div>
     </header>
