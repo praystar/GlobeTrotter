@@ -5,8 +5,12 @@ export const mainQueue = new Queue("mainQueue", { connection: redis });
 export const deadQueue1 = new Queue("deadQueue1", { connection: redis });
 export const deadQueue2 = new Queue("deadQueue2", { connection: redis });
 
-async function geminiProcess(data: any) {
-  return { result: `Processed: ${data.key}` };
+type JobData={
+    key: string
+};
+
+async function geminiProcess(data:JobData ) {
+//   return { result: `Processed: ${data.key}` };
 }
 
 new Worker("mainQueue", async job => {
