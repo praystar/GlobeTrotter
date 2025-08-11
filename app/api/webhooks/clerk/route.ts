@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { Webhook, WebhookRequiredHeaders } from "svix";
+import type { WebhookEvent } from "@clerk/clerk-sdk-node";
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
@@ -24,13 +25,13 @@ export async function POST(req: Request) {
   const payload = await req.text();
 
   const wh = new Webhook(WEBHOOK_SECRET);
-  let evt: any;
+  let evt: WebhookEvent;
   try {
-    evt = wh.verify(payload, {
+    evt = await wh.verify(payload, {
       "svix-id": svix_id,
       "svix-timestamp": svix_timestamp,
       "svix-signature": svix_signature,
-    } as WebhookRequiredHeaders);
+    } as WebhookRequiredHeaders)as WebhookEvent;
   } catch (err) {
     console.error("Webhook signature verification failed", err);
     return new NextResponse("Invalid signature", { status: 400 });
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
   console.log("Received Clerk webhook:", eventType, evt.data);
 
   if (eventType === "user.created") {
-    const { id: clerk_id, email_addresses, profile_image_url } = evt.data;
+    const { id: clerk_id, email_addresses} = evt.data;
     const email = email_addresses?.[0]?.email_address ?? null;
 
     try {
@@ -49,7 +50,6 @@ export async function POST(req: Request) {
           user_id: clerk_id,
           email: email!,
           password_hash: null,
-          profile_photo_url: profile_image_url ?? null,
         },
       });
       console.log("User inserted into database:", email);
