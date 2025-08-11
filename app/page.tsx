@@ -77,7 +77,7 @@ function BenefitsSection() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <Badge variant="secondary" className="mb-3">Benefits</Badge>
-          <h2 className="text-pretty text-3xl font-semibold sm:text-4xl">We've cracked the code.</h2>
+          <h2 className="text-pretty text-3xl font-semibold sm:text-4xl">We&apos;ve cracked the code.</h2>
           <p className="text-muted-foreground mt-3">Area provides real insights, without the data overload.</p>
         </div>
 
@@ -119,7 +119,7 @@ function BigPictureSection() {
         </div>
         <div className="flex flex-col gap-4">
           <Badge variant="secondary" className="w-fit">See the Big Picture</Badge>
-          <h3 className="text-pretty text-2xl font-semibold sm:text-3xl">Area turns your data into clear, vibrant visuals that show you exactly what's happening in each region.</h3>
+          <h3 className="text-pretty text-2xl font-semibold sm:text-3xl">Area turns your data into clear, vibrant visuals that show you exactly what&apos;s happening in each region.</h3>
           <ul className="mt-2 space-y-3">
             {bullets.map((b, i) => (
               <li key={i} className="flex items-start gap-3">
@@ -213,7 +213,7 @@ function TestimonialSection() {
           </div>
           <div className="grid gap-8 p-8 sm:p-12 md:grid-cols-[1.2fr_1fr] md:items-center">
             <div className="space-y-5">
-              <p className="text-pretty text-xl font-medium sm:text-2xl">“I was skeptical, but Area has completely transformed the way I manage my business. The data visualizations are so clear and intuitive, and the platform is so easy to use. I can't imagine running my company without it.”</p>
+              <p className="text-pretty text-xl font-medium sm:text-2xl">“I was skeptical, but Area has completely transformed the way I manage my business. The data visualizations are so clear and intuitive, and the platform is so easy to use. I can&apos;t imagine running my company without it.”</p>
               <div>
                 <p className="font-semibold">John Smith</p>
                 <p className="text-muted-foreground text-sm">Head of Data</p>
