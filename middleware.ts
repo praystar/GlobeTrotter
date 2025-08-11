@@ -7,11 +7,11 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/public(.*)",
-  "/api/webhooks(.*)", 
+  "/api/webhooks(.*)"
 ]);
 
-export default clerkMiddleware((auth, req) => {
-  const { userId }: any = auth();
+export default clerkMiddleware(async (auth, req) => {
+  const { userId } = await auth();
 
   if (!isPublicRoute(req) && !userId) {
     // Redirect unauthenticated users to Clerk sign-in page

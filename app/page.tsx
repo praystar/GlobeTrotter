@@ -292,17 +292,6 @@ function SiteFooter() {
           <a href="#contact" className="hover:underline">Contact Us</a>
         </nav>
       </div>
-      <div className="border-t">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 px-4 py-6 text-center text-sm text-muted-foreground sm:flex-row sm:px-6">
-          <p>© Area. 2025 • All Rights Reserved</p>
-          <div className="flex items-center gap-6">
-            <a className="hover:underline" href="#">Benefits</a>
-            <a className="hover:underline" href="#">Specifications</a>
-            <a className="hover:underline" href="#">How-to</a>
-            <a className="hover:underline" href="#">Contact Us</a>
-          </div>
-        </div>
-      </div>
     </footer>
   )
 }
