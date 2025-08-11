@@ -1,6 +1,10 @@
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import {
+  ClerkProvider,
+} from '@clerk/nextjs'
 import { SiteNav } from "@/components/site-nav";
 
 const geistSans = Geist({
@@ -25,9 +29,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}></body>
+        <ClerkProvider>
         <SiteNav />
         {children}
+        </ClerkProvider>
+        
       </body>
     </html>
   );
