@@ -104,6 +104,27 @@ export default function LLMPage() {
   const [plan, setPlan] = useState<TravelPlan | null>(null);
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
+  const [jobKey, setJobKey] = useState<string | null>(null);
+  const [jobStatus, setJobStatus] = useState<'idle' | 'queued' | 'processing' | 'completed' | 'failed'>('idle');
+  const [pollingInterval, setPollingInterval] = useState<NodeJS.Timeout | null>(null);
+
+  // Cleanup polling interval on unmount
+  React.useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, [pollingInterval]);
+
+  // Cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+      }
+    };
+  }, []);
 
   const [form, setForm] = useState<TravelDetails>({
     destination: "Paris, France",
@@ -122,6 +143,14 @@ export default function LLMPage() {
     setError("");
     setPlan(null);
     setSummary("");
+    setJobStatus('idle');
+    
+    // Clear any existing polling
+    if (pollingInterval) {
+      clearInterval(pollingInterval);
+      setPollingInterval(null);
+    }
+    
     try {
       const payload: TravelDetails = {
         ...form,
@@ -132,8 +161,8 @@ export default function LLMPage() {
           .filter(Boolean),
       };
 
-      // Call the Next.js API route
-      const res = await fetch("/api/generatePlanWithSummary", {
+      // Submit job to the queue
+      const res = await fetch("/api/submitJob", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -148,14 +177,76 @@ export default function LLMPage() {
         throw new Error(errMsg);
       }
 
-      const data: ApiResponse = await res.json();
-      setPlan(data.plan);
-      setSummary(data.summary);
+      const data = await res.json();
+      
+      if (data.status === 'completed') {
+        // Result was already in cache
+        setPlan(data.result);
+        setSummary(`Trip to ${payload.destination} for ${payload.duration} days. Estimated budget: ${data.result.total_estimated_cost}.`);
+        setJobStatus('completed');
+        setLoading(false);
+        return;
+      }
+      
+      // Job was submitted, start polling
+      setJobKey(data.key);
+      setJobStatus('queued');
+      
+      // Start polling for results
+      const interval = setInterval(async () => {
+        await pollForResult(data.key);
+      }, 2000); // Poll every 2 seconds
+      
+      setPollingInterval(interval);
+      
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error';
       setError(errorMessage);
-    } finally {
+      setJobStatus('failed');
       setLoading(false);
+    }
+  };
+
+  const pollForResult = async (key: string) => {
+    try {
+      const res = await fetch(`/api/getResult?key=${key}`);
+      
+      if (res.status === 404) {
+        // Result not ready yet, continue polling
+        return;
+      }
+      
+      if (!res.ok) {
+        throw new Error('Failed to get result');
+      }
+      
+      const data = await res.json();
+      
+      if (data.status === 'completed') {
+        // Result is ready
+        setPlan(data.result);
+        setSummary(`Trip to ${form.destination} for ${form.duration} days. Estimated budget: ${data.result.total_estimated_cost}.`);
+        setJobStatus('completed');
+        setLoading(false);
+        
+        // Stop polling
+        if (pollingInterval) {
+          clearInterval(pollingInterval);
+          setPollingInterval(null);
+        }
+      }
+      
+    } catch (err) {
+      console.error('Error polling for result:', err);
+      setError('Failed to retrieve result');
+      setJobStatus('failed');
+      setLoading(false);
+      
+      // Stop polling
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        setPollingInterval(null);
+      }
     }
   };
 
@@ -312,6 +403,25 @@ export default function LLMPage() {
             >
               {loading ? "Generating..." : "Generate Travel Plan"}
             </Button>
+            
+            {/* Job Status Indicator */}
+            {jobStatus !== 'idle' && (
+              <div className="mt-3 flex items-center space-x-2">
+                <div className={`h-2 w-2 rounded-full ${
+                  jobStatus === 'queued' ? 'bg-yellow-500' :
+                  jobStatus === 'processing' ? 'bg-blue-500' :
+                  jobStatus === 'completed' ? 'bg-green-500' :
+                  jobStatus === 'failed' ? 'bg-red-500' : 'bg-gray-500'
+                }`} />
+                <span className="text-sm text-gray-600">
+                  {jobStatus === 'queued' && 'Job queued, waiting to start...'}
+                  {jobStatus === 'processing' && 'Processing your travel plan...'}
+                  {jobStatus === 'completed' && 'Travel plan completed!'}
+                  {jobStatus === 'failed' && 'Job failed'}
+                </span>
+              </div>
+            )}
+            
             {error && (
               <p className="mt-3 text-sm text-red-600">Error: {error}</p>
             )}
