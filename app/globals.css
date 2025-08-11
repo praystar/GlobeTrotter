@@ -64,7 +64,7 @@
   --muted: #DFECC6; /* Light Mint as subtle backgrounds */
   --muted-foreground: #929292; /* Gray */
 
-  --accent: #C7B697; /* Sand Beige */
+  --accent: #000000; /* Black */
   --accent-foreground: #000000;
 
   --destructive: #C0392B; /* fallback red for destructive */
@@ -75,7 +75,7 @@
   /* Optional brand tints for charts/sidebar */
   --chart-1: #8E9C78; /* Olive Green */
   --chart-2: #DFECC6; /* Light Mint */
-  --chart-3: #C7B697; /* Sand Beige */
+  --chart-3: #000000; /* Black */
   --chart-4: #485C11; /* Deep Olive */
   --chart-5: #929292; /* Gray */
 
@@ -109,7 +109,7 @@
   --muted: #111111;
   --muted-foreground: #DFECC6; /* Light Mint text for muted */
 
-  --accent: #C7B697; /* Sand Beige */
+  --accent: #000000; /* Black */
   --accent-foreground: #000000;
 
   --destructive: #E74C3C;
@@ -119,7 +119,7 @@
 
   --chart-1: #8E9C78;
   --chart-2: #DFECC6;
-  --chart-3: #C7B697;
+  --chart-3: #000000;
   --chart-4: #485C11;
   --chart-5: #929292;
 
