@@ -1,7 +1,8 @@
 "use client";
+import dynamic from "next/dynamic";
 import { useState } from 'react';
-import MapView from '@/components/MapView';
-import CalendarView from '@/components/CalendarView';
+const MapView = dynamic(()=> import("@/components/MapView"),{ssr: false});
+const CalendarView = dynamic(()=> import("@/components/CalendarView"),{ssr: false});
 
 function App() {
   const [mapCenter, setMapCenter] = useState<[number, number]>([26.9124, 75.7873]);
