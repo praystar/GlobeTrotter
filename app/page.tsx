@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { Smartphone, Globe, Languages, TrendingUp, Sparkles, Check, ArrowRight, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -270,7 +271,9 @@ function ContactCTA() {
         <p className="text-muted-foreground mx-auto mt-3 max-w-prose">Schedule a quick call to learn how Area can turn your regional data into a powerful advantage.</p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <Button className="gap-2">Learn More <ArrowRight className="size-4" /></Button>
-          <Button variant="outline" className="gap-2"><Phone className="size-4" /> Phone</Button>
+          <Button variant="outline" className="gap-2" asChild>
+            <Link href="/llm"><Phone className="size-4" /> Phone</Link>
+          </Button>
         </div>
       </div>
     </section>
