@@ -22,6 +22,7 @@ model User {
   profile_photo_url String?
 
   trips Trip[]      
+  reviews Review[]
 
   @@map("users")
 }
@@ -76,6 +77,7 @@ model Trip {
   // relations
   budgets Budget[]
   stops   Stop[]
+  reviews Review[]
 
   @@map("trips")
 }
@@ -139,4 +141,18 @@ model StopActivity {
 
   @@unique([stop_id, activity_id])
   @@map("stop_activities")
+}
+
+model Review {
+  review_id   Int      @id @default(autoincrement())
+  user_id     String
+  trip_id     Int
+  stars       Int      @db.SmallInt
+  description String
+  created_at  DateTime @default(now())
+  
+  user User @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  trip Trip @relation(fields: [trip_id], references: [trip_id], onDelete: Cascade)
+  
+  @@map("reviews")
 }
