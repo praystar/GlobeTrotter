@@ -1,0 +1,143 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // change to "mysql" or "sqlite" if needed
+  url      = env("DATABASE_URL")
+}
+
+enum Category {
+  TRANSPORT
+  FOOD
+  HOTEL
+}
+
+model User {
+  user_id           Int      @id @default(autoincrement())
+  password_hash     String?
+  password          String?              
+  email             String   @unique
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  profile_photo_url String?
+
+  trips Trip[]      
+
+  @@map("users")
+}
+
+model Admin {
+  admin_id   Int     @id @default(autoincrement())
+  email      String  @unique
+  password   String
+  top_cities String? 
+  city_id    Int?  
+
+  city City? @relation(fields: [city_id], references: [city_id])
+
+  trips Trip[] @relation("AdminTrips")
+
+  @@map("admin")
+}
+
+model City {
+  city_id     Int        @id @default(autoincrement())
+  country     String?
+  state       String?
+  city        String    
+  image_url   String?
+  description String?
+
+  // relations
+  admins     Admin[]
+  trips      Trip[]
+  activities Activity[]
+  stops      Stop[]
+
+  @@map("city")
+}
+
+model Trip {
+  trip_id     Int       @id @default(autoincrement())
+  description String?
+  start_date  DateTime?
+  end_date    DateTime?
+
+  user_id Int
+  user    User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+
+  city_id Int?            // trip destination city 
+  city    City?  @relation(fields: [city_id], references: [city_id])
+
+  // admin relation per diagram ("info_with"). I modeled this as optional FK on trips.
+  admin_id Int?
+  admin    Admin? @relation("AdminTrips", fields: [admin_id], references: [admin_id])
+
+  // relations
+  budgets Budget[]
+  stops   Stop[]
+
+  @@map("trips")
+}
+
+model Budget {
+  budget_id Int      @id @default(autoincrement())
+  amount    Float
+  trip_id   Int
+  trip      Trip     @relation(fields: [trip_id], references: [trip_id], onDelete: Cascade)
+  category  Category
+
+  @@map("budgets")
+}
+
+model Activity {
+  activity_id Int     @id @default(autoincrement())
+  name        String
+  type        String
+  cost        Float?
+  image_url   String?
+  duration    Int?
+
+  city_id Int
+  city    City @relation(fields: [city_id], references: [city_id])
+
+
+  stopActivities StopActivity[]
+
+  @@map("activities")
+}
+
+model Stop {
+
+  id      Int    @id @default(autoincrement())
+  trip_id Int
+  trip    Trip   @relation(fields: [trip_id], references: [trip_id], onDelete: Cascade)
+
+  city_id Int
+  city    City   @relation(fields: [city_id], references: [city_id])
+
+  // optional ordering/sequence for stops on a trip
+  sequence Int?
+
+  // a stop can have many activities (and an activity can be associated with many stops) -> join table implemented below
+  stopActivities StopActivity[]
+
+  @@map("stops")
+}
+
+/*
+  Join table representing the relationship "stops -- for --> activities".
+  A stop can have multiple activities and an activity can be associated to multiple stops.
+*/
+model StopActivity {
+  id          Int      @id @default(autoincrement())
+  stop_id     Int
+  activity_id Int
+
+  stop     Stop     @relation(fields: [stop_id], references: [id], onDelete: Cascade)
+  activity Activity @relation(fields: [activity_id], references: [activity_id], onDelete: Cascade)
+
+  @@unique([stop_id, activity_id])
+  @@map("stop_activities")
+}
