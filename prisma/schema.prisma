@@ -15,8 +15,7 @@ enum Category {
 
 model User {
   user_id           Int      @id @default(autoincrement())
-  password_hash     String?
-  password          String?              
+  password_hash     String?          
   email             String   @unique
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
