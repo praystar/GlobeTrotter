@@ -34,7 +34,6 @@ function MapUpdater({ center, zoom = 13 }: { center: [number, number]; zoom?: nu
   return null;
 }
 
-// Crosshair SVG icon component for "Locate Me" button
 const TargetIcon = () => (
   <svg
     width="20"
@@ -73,7 +72,6 @@ const TargetIcon = () => (
   </svg>
 );
 
-// City data with numbers and coordinates
 const cities = [
   { name: 'Mumbai', coordinates: [19.076, 72.8777] as [number, number], number: 1 },
   { name: 'Delhi', coordinates: [28.7041, 77.1025] as [number, number], number: 7 },
@@ -86,7 +84,6 @@ export default function MapView({ center }: MapViewProps) {
   const [mapCenter, setMapCenter] = useState<[number, number]>(center);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<[number, number] | null>(null);
-
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -99,21 +96,19 @@ export default function MapView({ center }: MapViewProps) {
   }, [center]);
 
   // Handle input changes and fetch search suggestions with debounce
-  const handleSearchChange = (value: string) => {
-    setQuery(value);
-    setShowDropdown(true);
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
 
     if (searchTimer.current) clearTimeout(searchTimer.current);
 
     searchTimer.current = window.setTimeout(async () => {
-      if (!value.trim()) {
-        setResults([]);
-        return;
-      }
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-            value,
+            query,
           )}&format=json&limit=6`,
         );
         const data: SearchResult[] = await res.json();
@@ -122,7 +117,11 @@ export default function MapView({ center }: MapViewProps) {
         console.error('Search error:', error);
       }
     }, 400);
-  };
+
+    return () => {
+      if (searchTimer.current) clearTimeout(searchTimer.current);
+    };
+  }, [query]);
 
   // When user selects a search result
   const handleSelect = (r: SearchResult) => {
@@ -137,22 +136,22 @@ export default function MapView({ center }: MapViewProps) {
 
   // Locate user using Geolocation API
   const handleLocateMe = () => {
-    if (!navigator.geolocation) {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const point: [number, number] = [pos.coords.latitude, pos.coords.longitude];
+          setUserLocation(point);
+          setMapCenter(point);
+        },
+        (err) => {
+          console.error('Geolocation error:', err);
+          alert('Unable to fetch your location');
+        },
+        { enableHighAccuracy: true, timeout: 10000 },
+      );
+    } else {
       alert('Geolocation is not supported by your browser.');
-      return;
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const point: [number, number] = [pos.coords.latitude, pos.coords.longitude];
-        setUserLocation(point);
-        setMapCenter(point);
-      },
-      (err) => {
-        console.error('Geolocation error:', err);
-        alert('Unable to fetch your location');
-      },
-      { enableHighAccuracy: true, timeout: 10000 },
-    );
   };
 
   return (
@@ -165,7 +164,6 @@ export default function MapView({ center }: MapViewProps) {
 
         <MapUpdater center={mapCenter} zoom={13} />
 
-        {/* City markers with numbers */}
         {cities.map((city) => (
           <Marker
             key={city.name}
@@ -238,7 +236,7 @@ export default function MapView({ center }: MapViewProps) {
       >
         <input
           value={query}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setShowDropdown(true)}
           placeholder="Search for a place"
           style={{
