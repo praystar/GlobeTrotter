@@ -87,10 +87,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleEditUser = (user: User): void => {
-    toast.info(`Edit user: ${user.name}`)
-    // TODO: Implement edit user functionality
-  }
+
 
   const handleDeleteUser = async (userId: number): Promise<void> => {
     try {
@@ -117,10 +114,7 @@ export default function AdminDashboard() {
     }
   }
 
-  const handleViewUser = (user: User): void => {
-    toast.info(`View user: ${user.name}`)
-    // TODO: Implement view user functionality
-  }
+
 
   const filteredUsers: User[] = data?.users?.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -245,9 +239,7 @@ export default function AdminDashboard() {
             <TabsContent value="users" className="mt-6">
               <UserManagement 
                 users={filteredUsers}
-                onEditUser={handleEditUser}
                 onDeleteUser={handleDeleteUser}
-                onViewUser={handleViewUser}
               />
             </TabsContent>
 
