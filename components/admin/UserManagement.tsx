@@ -18,7 +18,7 @@ interface User {
 
 interface UserManagementProps {
   users: User[]
-  onDeleteUser?: (userId: string) => void
+  onDeleteUser?: (userId: number) => void
 }
 
 export function UserManagement({ 
