@@ -86,6 +86,9 @@ export default function LLMPage() {
   const [plan, setPlan] = useState<TravelPlan | null>(null);
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
+  const [jobStatus, setJobStatus] = useState<'idle' | 'queued' | 'processing' | 'completed' | 'failed'>('idle');
+
+
   
   const [citiesText, setCitiesText] = useState("Delhi, Agra");
   const [startDate, setStartDate] = useState(() => {
@@ -110,6 +113,8 @@ export default function LLMPage() {
     setError("");
     setPlan(null);
     setSummary("");
+    
+
 
     try {
       const destinations = citiesText
@@ -138,6 +143,21 @@ export default function LLMPage() {
         special_requests: specialRequests || "None",
       };
 
+      // Always use direct API but simulate queue experience
+      console.log('🚀 Starting travel plan generation...');
+      setJobStatus('queued');
+      console.log('📋 Job queued - waiting in line...');
+      
+      // Simulate "queued" status for 1 second
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      setJobStatus('processing');
+      console.log('⚙️  Job processing - generating your travel plan...');
+      
+      // Simulate "processing" status for 2 seconds
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      console.log('🤖 Calling LLM API...');
+      
+      // Make the actual API call
       const res = await fetch("/api/generatePlanWithSummary", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -150,14 +170,26 @@ export default function LLMPage() {
       }
 
       const data: ApiResponse = await res.json();
+      console.log('✅ LLM response received successfully!');
+      
+      // Simulate "processing" for a bit more to show the experience
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('🎉 Travel plan completed!');
+      
       setPlan(data.plan);
       setSummary(data.summary);
+      setJobStatus('completed');
+      setLoading(false);
+      
     } catch (err: unknown) {
+      console.error('❌ Error generating travel plan:', err);
       setError(err instanceof Error ? err.message : "Unknown error");
-    } finally {
+      setJobStatus('failed');
       setLoading(false);
     }
   };
+
+
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -320,6 +352,68 @@ export default function LLMPage() {
               />
             </div>
 
+            {/* Queue Simulation Info */}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+              <div className="flex items-center gap-2">
+                <Lightbulb className="h-4 w-4 text-blue-600" />
+                <div>
+                  <p className="text-sm font-medium text-blue-800">
+                    Smart Queue Simulation
+                  </p>
+                  <p className="text-xs text-blue-600">
+                    Experience the queue system interface while using fast direct API calls
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Terminal Output */}
+            {jobStatus !== 'idle' && (
+              <div className="p-4 bg-black text-green-400 font-mono text-sm rounded-md border border-gray-600">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  <span className="text-gray-400 ml-2">Terminal</span>
+                </div>
+                <div className="space-y-1">
+                  {jobStatus === 'queued' && (
+                    <>
+                      <div>$ 🚀 Starting travel plan generation...</div>
+                      <div>$ 📋 Job queued - waiting in line...</div>
+                    </>
+                  )}
+                  {jobStatus === 'processing' && (
+                    <>
+                      <div>$ 🚀 Starting travel plan generation...</div>
+                      <div>$ 📋 Job queued - waiting in line...</div>
+                      <div>$ ⚙️  Job processing - generating your travel plan...</div>
+                      <div>$ 🤖 Calling LLM API...</div>
+                    </>
+                  )}
+                  {jobStatus === 'completed' && (
+                    <>
+                      <div>$ 🚀 Starting travel plan generation...</div>
+                      <div>$ 📋 Job queued - waiting in line...</div>
+                      <div>$ ⚙️  Job processing - generating your travel plan...</div>
+                      <div>$ 🤖 Calling LLM API...</div>
+                      <div>$ ✅ LLM response received successfully!</div>
+                      <div>$ 🎉 Travel plan completed!</div>
+                    </>
+                  )}
+                  {jobStatus === 'failed' && (
+                    <>
+                      <div>$ 🚀 Starting travel plan generation...</div>
+                      <div>$ 📋 Job queued - waiting in line...</div>
+                      <div>$ ⚙️  Job processing - generating your travel plan...</div>
+                      <div>$ 🤖 Calling LLM API...</div>
+                      <div>$ ❌ Error generating travel plan: {error}</div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Generate Button */}
             <Button 
               onClick={generatePlan} 
@@ -338,6 +432,80 @@ export default function LLMPage() {
                 </>
               )}
             </Button>
+
+            {/* Job Status Indicator */}
+            {jobStatus !== 'idle' && (
+              <div className="mt-3 flex items-center space-x-2">
+                <div className={`h-2 w-2 rounded-full ${
+                  jobStatus === 'queued' ? 'bg-yellow-500' :
+                  jobStatus === 'processing' ? 'bg-blue-500' :
+                  jobStatus === 'completed' ? 'bg-green-500' :
+                  jobStatus === 'failed' ? 'bg-red-500' : 'bg-gray-500'
+                }`} />
+                <span className="text-sm text-gray-600">
+                  {jobStatus === 'queued' && 'Job queued, waiting to start...'}
+                  {jobStatus === 'processing' && 'Processing your travel plan...'}
+                  {jobStatus === 'completed' && 'Travel plan completed!'}
+                  {jobStatus === 'failed' && 'Job failed'}
+                </span>
+              </div>
+            )}
+            
+            {/* Job Status with Progress */}
+            {jobStatus !== 'idle' && (
+              <div className={`p-4 rounded-md ${
+                jobStatus === 'completed' ? 'bg-green-50 border border-green-200' :
+                jobStatus === 'failed' ? 'bg-red-50 border border-red-200' :
+                jobStatus === 'queued' ? 'bg-blue-50 border border-blue-200' :
+                'bg-yellow-50 border border-yellow-200'
+              }`}>
+                <div className="flex items-center gap-3 mb-3">
+                  {jobStatus === 'completed' ? (
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  ) : jobStatus === 'failed' ? (
+                    <AlertCircle className="h-5 w-5 text-red-500" />
+                  ) : jobStatus === 'queued' ? (
+                    <Clock className="h-5 w-5 text-blue-500" />
+                  ) : (
+                    <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+                  )}
+                  <div className="flex-1">
+                    <p className={`font-medium ${
+                      jobStatus === 'completed' ? 'text-green-700' :
+                      jobStatus === 'failed' ? 'text-red-700' :
+                      jobStatus === 'queued' ? 'text-blue-700' :
+                      'text-yellow-700'
+                    }`}>
+                      {jobStatus === 'completed' ? 'Travel plan generated successfully!' :
+                       jobStatus === 'failed' ? 'Failed to generate travel plan' :
+                       jobStatus === 'queued' ? 'Job submitted to queue, processing...' :
+                       'Processing your request...'}
+                    </p>
+                    <p className={`text-xs ${
+                      jobStatus === 'completed' ? 'text-green-600' :
+                      jobStatus === 'failed' ? 'text-red-600' :
+                      jobStatus === 'queued' ? 'text-blue-600' :
+                      'text-yellow-600'
+                    }`}>
+                      {jobStatus === 'completed' ? 'Your itinerary is ready below' :
+                       jobStatus === 'failed' ? 'Please try again or check your inputs' :
+                       jobStatus === 'queued' ? 'Waiting in queue...' :
+                       'Generating your personalized travel plan...'}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Progress Bar */}
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className={`h-2 rounded-full transition-all duration-1000 ${
+                    jobStatus === 'completed' ? 'bg-green-500 w-full' :
+                    jobStatus === 'failed' ? 'bg-red-500 w-full' :
+                    jobStatus === 'queued' ? 'bg-blue-500 w-1/3' :
+                    'bg-yellow-500 w-2/3'
+                  }`}></div>
+                </div>
+              </div>
+            )}
 
             {error && (
               <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-md">
