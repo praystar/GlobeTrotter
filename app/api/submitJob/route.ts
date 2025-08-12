@@ -4,8 +4,9 @@ import redis from '@/lib/redis';
 import { v4 as uuidv4 } from 'uuid';
 
 interface TravelDetails {
-  destination: string;
-  duration: number;
+  destinations: string[];
+  start_date: string;
+  end_date: string;
   budget: string;
   travel_style: string;
   interests: string[];
