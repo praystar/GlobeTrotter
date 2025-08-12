@@ -1,46 +1,61 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-
-import { Calendar, MapPin } from "lucide-react";
+import { Calendar, MapPin, Loader2 } from "lucide-react";
 
 type Trip = {
-  title: string;
-  destination: string;
-  startDate: string;
-  endDate?: string;
-  imageSrc?: string;
+  trip_id: number;
+  description: string;
+  start_date: string;
+  end_date: string;
+  stops: Array<{
+    city: {
+      city: string;
+      country: string;
+    };
+  }>;
 };
 
-const tripsUpcoming: Trip[] = [
-  { title: "Tokyo Cherry Blossom", destination: "Tokyo, Kyoto, Osaka", startDate: "Mar 20, 2025", endDate: "Mar 29, 2025" },
-  { title: "Beach Escape", destination: "Phuket, Thailand", startDate: "Jun 5, 2025", endDate: "Jun 12, 2025" },
-];
-
-const tripsCompleted: Trip[] = [
-  { title: "Bali Retreat", destination: "Ubud, Seminyak", startDate: "Jan 10, 2024", endDate: "Jan 17, 2024" },
-  { title: "Iceland Northern Lights", destination: "Reykjavik", startDate: "Dec 15, 2024", endDate: "Dec 19, 2024" },
-];
+type TripData = {
+  upcoming: Trip[];
+  completed: Trip[];
+  ongoing: Trip[];
+};
 
 function TripCard({ trip }: { trip: Trip }) {
+  const destination = trip.stops.length > 0 
+    ? `${trip.stops[0].city.city}, ${trip.stops[0].city.country}`
+    : "Unknown destination";
+    
+  const startDate = new Date(trip.start_date).toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+  
+  const endDate = new Date(trip.end_date).toLocaleDateString('en-US', { 
+    month: 'short', 
+    day: 'numeric', 
+    year: 'numeric' 
+  });
+
   return (
     <Card className="border-[#000000] bg-[#FFFFFF]">
       <CardContent className="p-5">
         <div className="flex gap-4">
           <div className="h-20 w-28 rounded-lg bg-[#DFECC6]" />
           <div className="flex-1">
-            <div className="text-base font-semibold text-[#000000]">{trip.title}</div>
+            <div className="text-base font-semibold text-[#000000]">{trip.description}</div>
             <div className="mt-1 flex items-center gap-2 text-sm text-[#485C11]">
               <MapPin className="h-4 w-4" />
-              <span>{trip.destination}</span>
+              <span>{destination}</span>
             </div>
             <div className="mt-1 flex items-center gap-2 text-sm text-[#485C11]">
               <Calendar className="h-4 w-4" />
-              <span>{trip.startDate}{trip.endDate ? ` - ${trip.endDate}` : ""}</span>
+              <span>{startDate} - {endDate}</span>
             </div>
           </div>
-
         </div>
       </CardContent>
     </Card>
@@ -48,6 +63,57 @@ function TripCard({ trip }: { trip: Trip }) {
 }
 
 export default function UserTripListingPage() {
+  const [tripData, setTripData] = useState<TripData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchUserTrips();
+  }, []);
+
+  const fetchUserTrips = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/user/trips');
+      if (!response.ok) {
+        throw new Error('Failed to fetch trips');
+      }
+      const data = await response.json();
+      setTripData(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch trips');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#FFFFFF] text-[#000000] flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-[#485C11]" />
+          <p>Loading your trips...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="min-h-screen bg-[#FFFFFF] text-[#000000] flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={fetchUserTrips}
+            className="px-4 py-2 bg-[#485C11] text-white rounded-md hover:bg-[#8E9C78]"
+          >
+            Retry
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#FFFFFF] text-[#000000]">
       <div className="mx-auto w-full max-w-6xl px-4 py-10">
@@ -56,25 +122,47 @@ export default function UserTripListingPage() {
         <div className="mt-8 space-y-6">
           <section>
             <h2 className="mb-4 text-2xl font-semibold">Ongoing</h2>
-            <Card className="border-dashed border-2 border-[#000000] bg-[#FFFFFF]">
-              <CardContent className="py-10 text-center">
-                <p className="text-[#929292]">No ongoing trips right now!</p>
-              </CardContent>
-            </Card>
+            {tripData?.ongoing && tripData.ongoing.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {tripData.ongoing.map((trip) => <TripCard key={trip.trip_id} trip={trip} />)}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 border-[#000000] bg-[#FFFFFF]">
+                <CardContent className="py-10 text-center">
+                  <p className="text-[#929292]">No ongoing trips right now!</p>
+                </CardContent>
+              </Card>
+            )}
           </section>
 
           <section>
             <h2 className="mb-4 text-2xl font-semibold">Upcoming</h2>
-            <div className="grid grid-cols-1 gap-4">
-              {tripsUpcoming.map((t, i) => <TripCard key={i} trip={t} />)}
-            </div>
+            {tripData?.upcoming && tripData.upcoming.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {tripData.upcoming.map((trip) => <TripCard key={trip.trip_id} trip={trip} />)}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 border-[#000000] bg-[#FFFFFF]">
+                <CardContent className="py-10 text-center">
+                  <p className="text-[#929292]">No upcoming trips planned!</p>
+                </CardContent>
+              </Card>
+            )}
           </section>
 
           <section>
             <h2 className="mb-4 text-2xl font-semibold">Completed</h2>
-            <div className="grid grid-cols-1 gap-4">
-              {tripsCompleted.map((t, i) => <TripCard key={i} trip={t} />)}
-            </div>
+            {tripData?.completed && tripData.completed.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {tripData.completed.map((trip) => <TripCard key={trip.trip_id} trip={trip} />)}
+              </div>
+            ) : (
+              <Card className="border-dashed border-2 border-[#000000] bg-[#FFFFFF]">
+                <CardContent className="py-10 text-center">
+                  <p className="text-[#929292]">No completed trips yet!</p>
+                </CardContent>
+              </Card>
+            )}
           </section>
         </div>
       </div>

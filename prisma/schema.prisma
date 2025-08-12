@@ -68,6 +68,20 @@ model Trip {
   description String?
   start_date  DateTime?
   end_date    DateTime?
+  
+  // Additional fields for storing complete trip data
+  budget              String?
+  travel_style        String?
+  accommodation       String?
+  transportation      String?
+  interests          String? // JSON string of interests array
+  special_requests   String?
+  plan_summary       String?
+  total_cost         String?
+  itinerary          String? // JSON string of itinerary array
+  travel_tips        String? // JSON string of travel tips array
+  packing_list       String? // JSON string of packing list array
+  emergency_contacts String? // JSON string of emergency contacts object
 
   user_id String
   user    User   @relation(fields: [user_id], references: [user_id], onDelete: Cascade)

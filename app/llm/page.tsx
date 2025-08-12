@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { differenceInDays, parseISO, format } from "date-fns";
+import { useAuth } from "@clerk/nextjs";
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -82,11 +84,14 @@ const transportOptions = ["Public Transport", "Car Rental", "Train", "Flight"];
 const travelStyleOptions = ["Cultural", "Adventure", "Relaxation", "Food & Wine", "Historical", "Nature", "Urban", "Rural"];
 
 export default function LLMPage() {
+  const { isSignedIn, userId } = useAuth();
   const [loading, setLoading] = useState(false);
   const [plan, setPlan] = useState<TravelPlan | null>(null);
   const [summary, setSummary] = useState("");
   const [error, setError] = useState("");
   const [jobStatus, setJobStatus] = useState<'idle' | 'queued' | 'processing' | 'completed' | 'failed'>('idle');
+  const [savingTrip, setSavingTrip] = useState(false);
+  const [tripSaved, setTripSaved] = useState(false);
 
 
   
@@ -189,11 +194,67 @@ export default function LLMPage() {
     }
   };
 
+  const saveTrip = async () => {
+    if (!plan) return;
+    
+    try {
+      setSavingTrip(true);
+      setError("");
+      
+      const destinations = citiesText
+        .split(",")
+        .map((city) => city.trim())
+        .filter(Boolean);
+
+      const tripData = {
+        description: plan.itinerary[0]?.city || destinations[0] || "Travel Plan",
+        start_date: startDate,
+        end_date: endDate,
+        destinations: destinations,
+        budget: budget,
+        travel_style: travelStyle,
+        accommodation: accommodation,
+        transportation: transportation,
+        interests: interestsText.split(",").map((s) => s.trim()).filter(Boolean),
+        special_requests: specialRequests || "None",
+        plan_summary: summary,
+        total_cost: plan.total_estimated_cost,
+        itinerary: plan.itinerary,
+        travel_tips: plan.travel_tips,
+        packing_list: plan.packing_list,
+        emergency_contacts: plan.emergency_contacts
+      };
+
+      const response = await fetch("/api/user/save-trip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tripData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to save trip");
+      }
+
+      setTripSaved(true);
+      // Reset saved status after 3 seconds
+      setTimeout(() => setTripSaved(false), 3000);
+      
+    } catch (err: unknown) {
+      console.error('❌ Error saving trip:', err);
+      setError(err instanceof Error ? err.message : "Failed to save trip");
+    } finally {
+      setSavingTrip(false);
+    }
+  };
+
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <>
+      <SignedIn>
+        <div className="min-h-screen bg-gray-50">
+          <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
             AI Travel Planner
@@ -643,9 +704,53 @@ export default function LLMPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Save Trip Button */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Save This Trip</h3>
+                    <p className="text-sm text-gray-600">
+                      Save this travel plan to your account to view it later in your trip listings
+                    </p>
+                  </div>
+                  <div className="flex gap-3">
+                    {tripSaved && (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-md">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                        <span className="text-sm text-green-700">Trip saved successfully!</span>
+                      </div>
+                    )}
+                    <Button 
+                      onClick={saveTrip}
+                      disabled={savingTrip}
+                      className="bg-[#485C11] hover:bg-[#8E9C78] text-white"
+                    >
+                      {savingTrip ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="mr-2 h-4 w-4" />
+                          Save Trip
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
-      </div>
-    </div>
-  );
+          </div>
+        </div>
+        </SignedIn>
+        <SignedOut>
+          <RedirectToSignIn />
+        </SignedOut>
+      </>
+    );
 }

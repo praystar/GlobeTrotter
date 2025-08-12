@@ -30,6 +30,7 @@ export function SiteNav() {
           <Link className="hover:text-primary transition-colors" href="/llm">AI Travel Planner</Link>
           <Link className="hover:text-primary transition-colors" href="/mapcalendar">My Schedule</Link>
           <Link className="hover:text-primary transition-colors" href="/community">View Community</Link>
+          <Link className="hover:text-primary transition-colors" href="/landing_page">View Listings</Link>
         </nav>
         </SignedIn>
         <div className="flex items-center justify-end">

@@ -7,19 +7,18 @@ import { Button } from "@/components/ui/button"
 import { Trash2 } from "lucide-react"
 
 interface User {
-  id: number
-  name: string
+  user_id: string
   email: string
+  role: "USER" | "ADMIN"
+  created_at: string
+  updated_at: string
+  profile_photo_url?: string
   trips: number
-  status: "active" | "inactive"
-  avatar: string
-  lastActive?: string
-  joinDate?: string
 }
 
 interface UserManagementProps {
   users: User[]
-  onDeleteUser?: (userId: number) => void
+  onDeleteUser?: (userId: string) => void
 }
 
 export function UserManagement({ 
@@ -39,31 +38,29 @@ export function UserManagement({
       <CardContent>
         <div className="space-y-4">
           {users.map((user) => (
-            <div key={user.id} className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition-colors" style={{ backgroundColor: '#F8F9FA', border: '1px solid #E9ECEF' }}>
+            <div key={user.user_id} className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50 transition-colors" style={{ backgroundColor: '#F8F9FA', border: '1px solid #E9ECEF' }}>
               <div className="flex items-center gap-4">
                 <Avatar>
                   <AvatarFallback style={{ backgroundColor: '#8E9C78', color: '#FFFFFF' }}>
-                    {user.avatar}
+                    {user.email.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
                 <div>
-                  <h3 className="font-semibold" style={{ color: '#000000' }}>{user.name}</h3>
+                  <h3 className="font-semibold" style={{ color: '#000000' }}>{user.email.split('@')[0]}</h3>
                   <p className="text-sm" style={{ color: '#929292' }}>{user.email}</p>
-                  {user.lastActive && (
-                    <p className="text-xs" style={{ color: '#929292' }}>Last active: {user.lastActive}</p>
-                  )}
+                  <p className="text-xs" style={{ color: '#929292' }}>Joined: {new Date(user.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4">
                 <div className="text-right">
                   <Badge 
-                    variant={user.status === 'active' ? 'default' : 'secondary'}
+                    variant="default"
                     style={{ 
-                      backgroundColor: user.status === 'active' ? '#8E9C78' : '#C7B697',
+                      backgroundColor: user.role === 'ADMIN' ? '#485C11' : '#8E9C78',
                       color: '#FFFFFF'
                     }}
                   >
-                    {user.status}
+                    {user.role}
                   </Badge>
                   <div className="text-sm mt-1" style={{ color: '#929292' }}>{user.trips} trips</div>
                 </div>
@@ -74,7 +71,7 @@ export function UserManagement({
                       size="icon"
                       className="h-8 w-8"
                       style={{ color: '#485C11' }}
-                      onClick={() => onDeleteUser(user.id)}
+                      onClick={() => onDeleteUser(user.user_id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

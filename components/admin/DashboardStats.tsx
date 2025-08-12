@@ -5,10 +5,8 @@ import { Users, MapPin, Activity, TrendingUp, Calendar, Globe } from "lucide-rea
 
 interface StatsData {
   totalUsers: number
-  activeUsers: number
   totalTrips: number
   averageTripsPerUser: number
-  monthlyGrowth: number
   topCity: string
   topActivity: string
 }
@@ -27,13 +25,6 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       bgColor: "#F8F9FA"
     },
     {
-      title: "Active Users",
-      value: stats.activeUsers,
-      icon: Users,
-      color: "#485C11",
-      bgColor: "#F8F9FA"
-    },
-    {
       title: "Total Trips",
       value: stats.totalTrips,
       icon: Globe,
@@ -48,13 +39,6 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
       bgColor: "#F8F9FA"
     },
     {
-      title: "Monthly Growth",
-      value: `${stats.monthlyGrowth >= 0 ? '+' : ''}${stats.monthlyGrowth}%`,
-      icon: TrendingUp,
-      color: stats.monthlyGrowth >= 0 ? "#485C11" : "#485C11",
-      bgColor: "#F8F9FA"
-    },
-    {
       title: "Top City",
       value: stats.topCity,
       icon: MapPin,
@@ -64,7 +48,7 @@ export function DashboardStats({ stats }: DashboardStatsProps) {
   ]
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       {statCards.map((stat, index) => {
         const Icon = stat.icon
         return (

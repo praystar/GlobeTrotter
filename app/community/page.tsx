@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Search, Filter, SortAsc, SortDesc } from "lucide-react";
+import { Star, Search, Filter, SortAsc, SortDesc, Loader2 } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 
 type Review = {
   review_id: number;
@@ -29,92 +31,18 @@ type Review = {
   };
 };
 
-// Synthetic data for now
-const syntheticReviews: Review[] = [
-  {
-    review_id: 1,
-    user_id: 10,
-    trip_id: 15,
-    stars: 2,
-    description: "Not satisfied with the trip to Stockholm, Oslo, Copenhagen. Many promised activities were either cancelled or not as described. Frustrating experience.",
-    created_at: "2025-06-15",
-    user: {
-      email: "conscious.chimpanzee@email.com",
-      profile_photo_url: "/profile-avatar.jpg"
-    },
-    trip: {
-      description: "Nordic Adventure",
-      city: {
-        city: "Stockholm",
-        country: "Sweden"
-      }
-    }
-  },
-  {
-    review_id: 2,
-    user_id: 2,
-    trip_id: 10,
-    stars: 5,
-    description: "Absolutely incredible trip! Sydney, Melbourne, and the Great Barrier Reef were beyond expectations. The local guides were knowledgeable and friendly. Highly recommend!",
-    created_at: "2025-01-20",
-    user: {
-      email: "alert.kangaroo@email.com",
-      profile_photo_url: "/profile-avatar.jpg"
-    },
-    trip: {
-      description: "Australian Adventure",
-      city: {
-        city: "Sydney",
-        country: "Australia"
-      }
-    }
-  },
-  {
-    review_id: 3,
-    user_id: 5,
-    trip_id: 8,
-    stars: 4,
-    description: "Great experience in Japan! The cherry blossoms were beautiful and the food was amazing. Only downside was the crowded tourist spots.",
-    created_at: "2025-03-10",
-    user: {
-      email: "thoughtful.crocodile@email.com",
-      profile_photo_url: "/profile-avatar.jpg"
-    },
-    trip: {
-      description: "Cherry Blossom Tour",
-      city: {
-        city: "Tokyo",
-        country: "Japan"
-      }
-    }
-  },
-  {
-    review_id: 4,
-    user_id: 7,
-    trip_id: 12,
-    stars: 3,
-    description: "Decent trip to Paris. The Eiffel Tower was impressive but the weather wasn&apos;t great. Food was good though.",
-    created_at: "2025-02-28",
-    user: {
-      email: "charmi@email.com",
-      profile_photo_url: "/profile-avatar.jpg"
-    },
-    trip: {
-      description: "Paris Getaway",
-      city: {
-        city: "Paris",
-        country: "France"
-      }
-    }
-  }
-];
+// Reviews will be fetched from the API
 
 export default function CommunityPage() {
-  const [reviews, setReviews] = useState<Review[]>(syntheticReviews);
+  const { isSignedIn, userId } = useAuth();
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [newReview, setNewReview] = useState({
     destination: "",
     stars: 0,
@@ -174,42 +102,86 @@ export default function CommunityPage() {
     ));
   };
 
+  // Fetch reviews from API when component mounts
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
+  const fetchReviews = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/community');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch reviews');
+      }
+      
+      const data = await response.json();
+      if (data.success) {
+        setReviews(data.reviews);
+      }
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      setError('Failed to load reviews. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const getUserInitials = (email: string) => {
     return email.split('@')[0].split('.').map(n => n[0]).join('').toUpperCase();
   };
 
-  const handleAddReview = () => {
+  const handleAddReview = async () => {
     if (!newReview.destination || !newReview.description || newReview.stars === 0) {
       return;
     }
 
-    const review: Review = {
-      review_id: reviews.length + 1,
-      user_id: Math.floor(Math.random() * 1000) + 1,
-      trip_id: Math.floor(Math.random() * 1000) + 1,
-      stars: newReview.stars,
-      description: newReview.description,
-      created_at: new Date().toISOString().split('T')[0],
-      user: {
-        email: "user@example.com",
-        profile_photo_url: "/profile-avatar.jpg"
-      },
-      trip: {
-        description: newReview.destination,
-        city: {
-          city: newReview.destination.split(',')[0]?.trim() || newReview.destination,
-          country: newReview.destination.split(',')[1]?.trim() || ""
-        }
-      }
-    };
+    try {
+      setIsSubmitting(true);
+      
+      const response = await fetch('/api/community', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          destination: newReview.destination,
+          stars: newReview.stars,
+          description: newReview.description
+        }),
+      });
 
-    setReviews([review, ...reviews]);
-    setNewReview({ destination: "", stars: 0, description: "" });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit review');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Add the new review to the beginning of the list
+        setReviews([data.review, ...reviews]);
+        // Reset the form
+        setNewReview({ destination: "", stars: 0, description: "" });
+        // Show success message
+        setSuccessMessage('Review submitted successfully!');
+        setError(''); // Clear any previous errors
+        // Hide success message after 3 seconds
+        setTimeout(() => setSuccessMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert(error instanceof Error ? error.message : 'Failed to submit review');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <main className="min-h-screen bg-[#FFFFFF] text-[#000000]">
-      <div className="mx-auto w-full max-w-6xl px-4 py-8">
+    <>
+      <SignedIn>
+        <main className="min-h-screen bg-[#FFFFFF] text-[#000000]">
+          <div className="mx-auto w-full max-w-6xl px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-semibold mb-2" style={{ fontFamily: "'Playfair Display', serif" }}>
@@ -219,6 +191,28 @@ export default function CommunityPage() {
             Share and discover travel experiences from our community
           </p>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-700 text-sm">{error}</p>
+            <Button 
+              onClick={() => setError("")} 
+              variant="outline" 
+              size="sm" 
+              className="mt-2 text-red-600 border-red-300 hover:bg-red-100"
+            >
+              Dismiss
+            </Button>
+          </div>
+        )}
+
+        {/* Success Display */}
+        {successMessage && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-md">
+            <p className="text-green-700 text-sm">{successMessage}</p>
+          </div>
+        )}
 
         {/* Search and Filter Bar */}
         <div className="flex flex-col gap-4 mb-8">
@@ -317,9 +311,16 @@ export default function CommunityPage() {
               <Button 
                 onClick={handleAddReview}
                 className="bg-[#485C11] hover:bg-[#8E9C78] text-[#FFFFFF] rounded-full"
-                disabled={!newReview.destination || !newReview.description || newReview.stars === 0}
+                disabled={!newReview.destination || !newReview.description || newReview.stars === 0 || isSubmitting}
               >
-                Submit Review
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit Review'
+                )}
               </Button>
             </div>
           </CardContent>
@@ -327,7 +328,16 @@ export default function CommunityPage() {
 
         {/* Reviews Grid */}
         <div className="space-y-6">
-          {filteredAndSortedReviews.length === 0 ? (
+          {isLoading ? (
+            <Card className="border-[#000000] bg-[#FFFFFF]">
+              <CardContent className="py-12 text-center">
+                <div className="flex items-center justify-center gap-2">
+                  <Loader2 className="h-6 w-6 animate-spin" />
+                  <p className="text-[#929292]">Loading reviews...</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : filteredAndSortedReviews.length === 0 ? (
             <Card className="border-[#000000] bg-[#FFFFFF]">
               <CardContent className="py-12 text-center">
                 <p className="text-[#929292]">No reviews found matching your criteria.</p>
@@ -379,7 +389,12 @@ export default function CommunityPage() {
             ))
           )}
         </div>
-      </div>
-    </main>
-  );
+          </div>
+        </main>
+        </SignedIn>
+        <SignedOut>
+          <RedirectToSignIn />
+        </SignedOut>
+      </>
+    );
 }

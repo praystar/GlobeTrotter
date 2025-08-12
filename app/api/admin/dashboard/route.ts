@@ -1,17 +1,8 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
+import { prisma } from '@/lib/prisma'
 
-// Mock data - replace with actual database queries
-let mockUsers = [
-  { id: 1, name: "John Doe", email: "john@example.com", trips: 5, status: "active", avatar: "JD", lastActive: "2 hours ago", joinDate: "2024-01-15" },
-  { id: 2, name: "Jane Smith", email: "jane@example.com", trips: 3, status: "active", avatar: "JS", lastActive: "1 day ago", joinDate: "2024-02-20" },
-  { id: 3, name: "Mike Johnson", email: "mike@example.com", trips: 7, status: "inactive", avatar: "MJ", lastActive: "1 week ago", joinDate: "2023-12-10" },
-  { id: 4, name: "Sarah Wilson", email: "sarah@example.com", trips: 2, status: "active", avatar: "SW", lastActive: "3 hours ago", joinDate: "2024-03-05" },
-  { id: 5, name: "David Brown", email: "david@example.com", trips: 4, status: "active", avatar: "DB", lastActive: "5 hours ago", joinDate: "2024-01-30" },
-  { id: 6, name: "Emily Davis", email: "emily@example.com", trips: 6, status: "active", avatar: "ED", lastActive: "1 hour ago", joinDate: "2024-02-15" },
-  { id: 7, name: "Chris Lee", email: "chris@example.com", trips: 1, status: "inactive", avatar: "CL", lastActive: "2 weeks ago", joinDate: "2024-03-01" },
-  { id: 8, name: "Lisa Chen", email: "lisa@example.com", trips: 8, status: "active", avatar: "LC", lastActive: "30 minutes ago", joinDate: "2023-11-20" }
-]
+// Mock data for charts - replace with actual database queries
 
 const mockPopularCities = [
   { name: "Paris", value: 35, color: "#8E9C78" },
@@ -40,15 +31,40 @@ const mockUserTrends = [
   { period: "Aug", users: 380 }
 ]
 
-function getDashboardStats() {
+async function getDashboardStats() {
+  // Get real data from database
+  const totalUsers = await prisma.user.count()
+  const totalTrips = await prisma.trip.count()
+  const averageTripsPerUser = totalUsers > 0 ? Math.round(totalTrips / totalUsers) : 0
+  
+  // Get top city by number of trips
+  const topCityResult = await prisma.stop.groupBy({
+    by: ['city_id'],
+    _count: {
+      city_id: true
+    },
+    orderBy: {
+      _count: {
+        city_id: 'desc'
+      }
+    },
+    take: 1
+  })
+  
+  let topCity = "Unknown"
+  if (topCityResult.length > 0) {
+    const city = await prisma.city.findUnique({
+      where: { city_id: topCityResult[0].city_id }
+    })
+    topCity = city ? city.city : "Unknown"
+  }
+  
   return {
-    totalUsers: mockUsers.length,
-    activeUsers: mockUsers.filter(user => user.status === 'active').length,
-    totalTrips: mockUsers.reduce((sum, user) => sum + user.trips, 0),
-    averageTripsPerUser: Math.round(mockUsers.reduce((sum, user) => sum + user.trips, 0) / mockUsers.length),
-    monthlyGrowth: 15.2,
-    topCity: mockPopularCities[0].name,
-    topActivity: mockActivities[0].activity
+    totalUsers,
+    totalTrips,
+    averageTripsPerUser,
+    topCity,
+    topActivity: mockActivities[0].activity // Keep mock for now
   }
 }
 
@@ -67,12 +83,40 @@ export async function GET() {
     //   return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     // }
 
+    // Get real users from database
+    const users = await prisma.user.findMany({
+      select: {
+        user_id: true,
+        email: true,
+        role: true,
+        created_at: true,
+        updated_at: true,
+        profile_photo_url: true,
+        trips: {
+          select: {
+            trip_id: true
+          }
+        }
+      }
+    })
+
+    // Transform users to match the expected format
+    const transformedUsers = users.map(user => ({
+      user_id: user.user_id,
+      email: user.email,
+      role: user.role,
+      created_at: user.created_at.toISOString(),
+      updated_at: user.updated_at.toISOString(),
+      profile_photo_url: user.profile_photo_url,
+      trips: user.trips.length
+    }))
+
     return NextResponse.json({
-      users: mockUsers,
+      users: transformedUsers,
       popularCities: mockPopularCities,
       activities: mockActivities,
       userTrends: mockUserTrends,
-      stats: getDashboardStats()
+      stats: await getDashboardStats()
     })
   } catch (error) {
     console.error('Dashboard API error:', error)
@@ -97,13 +141,15 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: true, message: 'User updated successfully' })
       
       case 'deleteUser':
-        // Remove user from mock data
+        // Delete user from database
         const userToDelete = data.userId
-        mockUsers = mockUsers.filter(user => user.id !== userToDelete)
+        await prisma.user.delete({
+          where: { user_id: userToDelete }
+        })
         return NextResponse.json({ 
           success: true, 
           message: 'User deleted successfully',
-          stats: getDashboardStats() // Return updated stats
+          stats: await getDashboardStats() // Return updated stats
         })
       
       default:

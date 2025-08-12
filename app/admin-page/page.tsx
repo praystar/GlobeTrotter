@@ -14,14 +14,13 @@ import { DashboardStats } from "@/components/admin/DashboardStats"
 import { toast } from "sonner"
 
 interface User {
-  id: number
-  name: string
+  user_id: string
   email: string
+  role: "USER" | "ADMIN"
+  created_at: string
+  updated_at: string
+  profile_photo_url?: string
   trips: number
-  status: "active" | "inactive"
-  avatar: string
-  lastActive?: string
-  joinDate?: string
 }
 
 interface CityData {
@@ -44,10 +43,8 @@ interface TrendData {
 
 interface DashboardStats {
   totalUsers: number
-  activeUsers: number
   totalTrips: number
   averageTripsPerUser: number
-  monthlyGrowth: number
   topCity: string
   topActivity: string
 }
@@ -89,7 +86,7 @@ export default function AdminDashboard() {
 
 
 
-  const handleDeleteUser = async (userId: number): Promise<void> => {
+  const handleDeleteUser = async (userId: string): Promise<void> => {
     try {
       const response = await fetch('/api/admin/dashboard', {
         method: 'POST',
@@ -117,7 +114,6 @@ export default function AdminDashboard() {
 
 
   const filteredUsers: User[] = data?.users?.filter(user => 
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   ) || []
 
