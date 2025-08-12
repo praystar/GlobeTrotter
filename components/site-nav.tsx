@@ -9,21 +9,28 @@ export function SiteNav() {
   const { openSignIn } = useClerk()
   return (
     <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto_1fr] items-center px-4 sm:px-6">
-        {/* Use Link for the logo to enable client-side routing */}
-        <Link href="/" className="flex items-center gap-2 text-lg font-semibold text-primary hover:text-primary/80 transition-colors">
-          <span className="inline-flex size-7 items-center justify-center rounded-md border border-primary bg-primary/10">
-            <Sparkles className="size-4 text-primary" />
-          </span>
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
+        {/* Replaced <a> tag with Link for the homepage navigation */}
+        <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
+          <span className="inline-flex size-7 items-center justify-center rounded-md border"><Sparkles className="size-4" /></span>
           <span>GlobeTrotter</span>
         </Link>
-
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
-          {/* Use Link for internal navigation links */}
+        <SignedOut>
+          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+            {/* Replaced <a> tags with Link for in-page navigation */}
+            <Link className="hover:underline" href="#benefits">Benefits</Link>
+            <Link className="hover:underline" href="#specs">Specifications</Link>
+            <Link className="hover:underline" href="#howto">How-to</Link>
+            <Link className="hover:underline" href="#contact">Contact Us</Link>
+          </nav>
+        </SignedOut>
+        <SignedIn>
+          <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+          {/* These links were already using the Link component */}
           <Link className="hover:text-primary transition-colors" href="/llm">AI Travel Planner</Link>
           <Link className="hover:text-primary transition-colors" href="/mapcalendar">Map & Calendar</Link>
         </nav>
-
+        </SignedIn>
         <div className="flex items-center justify-end">
           <SignedOut>
             <Button
@@ -34,7 +41,7 @@ export function SiteNav() {
             </Button>
           </SignedOut>
           <SignedIn>
-            <UserButton />
+            <UserButton></UserButton>
           </SignedIn>
         </div>
       </div>
