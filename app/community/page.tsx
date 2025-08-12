@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Star, Search, Filter, SortAsc, SortDesc } from "lucide-react";
@@ -114,6 +115,11 @@ export default function CommunityPage() {
   const [selectedFilter, setSelectedFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("newest");
   const [isLoading, setIsLoading] = useState(false);
+  const [newReview, setNewReview] = useState({
+    destination: "",
+    stars: 0,
+    description: ""
+  });
 
   // Filter options
   const filterOptions = [
@@ -170,6 +176,35 @@ export default function CommunityPage() {
 
   const getUserInitials = (email: string) => {
     return email.split('@')[0].split('.').map(n => n[0]).join('').toUpperCase();
+  };
+
+  const handleAddReview = () => {
+    if (!newReview.destination || !newReview.description || newReview.stars === 0) {
+      return;
+    }
+
+    const review: Review = {
+      review_id: reviews.length + 1,
+      user_id: Math.floor(Math.random() * 1000) + 1,
+      trip_id: Math.floor(Math.random() * 1000) + 1,
+      stars: newReview.stars,
+      description: newReview.description,
+      created_at: new Date().toISOString().split('T')[0],
+      user: {
+        email: "user@example.com",
+        profile_photo_url: "/profile-avatar.jpg"
+      },
+      trip: {
+        description: newReview.destination,
+        city: {
+          city: newReview.destination.split(',')[0]?.trim() || newReview.destination,
+          country: newReview.destination.split(',')[1]?.trim() || ""
+        }
+      }
+    };
+
+    setReviews([review, ...reviews]);
+    setNewReview({ destination: "", stars: 0, description: "" });
   };
 
   return (
@@ -237,6 +272,59 @@ export default function CommunityPage() {
           </div>
         </div>
 
+        {/* Add Review Form */}
+        <Card className="border-[#000000] bg-[#FFFFFF] mb-8">
+          <CardContent className="p-6">
+            <h3 className="text-xl font-semibold text-[#000000] mb-4">Add Your Review</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#000000] mb-2">Destination</label>
+                <Input 
+                  placeholder="Enter destination (e.g., Bali, Indonesia)" 
+                  className="border-[#000000]"
+                  value={newReview.destination}
+                  onChange={(e) => setNewReview({...newReview, destination: e.target.value})}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#000000] mb-2">Rating</label>
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setNewReview({...newReview, stars: star})}
+                      className="text-2xl hover:scale-110 transition-transform"
+                    >
+                      {star <= newReview.stars ? (
+                        <Star className="w-8 h-8 fill-[#485C11] text-[#485C11]" />
+                      ) : (
+                        <Star className="w-8 h-8 text-[#929292] hover:text-[#485C11]" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-[#000000] mb-2">Review</label>
+                <Textarea 
+                  placeholder="Share your experience..."
+                  className="w-full border-[#000000] resize-none h-24"
+                  value={newReview.description}
+                  onChange={(e) => setNewReview({...newReview, description: e.target.value})}
+                />
+              </div>
+              <Button 
+                onClick={handleAddReview}
+                className="bg-[#485C11] hover:bg-[#8E9C78] text-[#FFFFFF] rounded-full"
+                disabled={!newReview.destination || !newReview.description || newReview.stars === 0}
+              >
+                Submit Review
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Reviews Grid */}
         <div className="space-y-6">
           {filteredAndSortedReviews.length === 0 ? (
@@ -283,14 +371,7 @@ export default function CommunityPage() {
                         {review.description}
                       </p>
                       
-                      <div className="flex items-center gap-2">
-                        <Button size="sm" className="bg-[#485C11] hover:bg-[#8E9C78] text-[#FFFFFF] rounded-full">
-                          View Trip Details
-                        </Button>
-                        <Button size="sm" variant="outline" className="border-[#000000] text-[#000000] hover:bg-[#DFECC6] rounded-full">
-                          Reply
-                        </Button>
-                      </div>
+
                     </div>
                   </div>
                 </CardContent>

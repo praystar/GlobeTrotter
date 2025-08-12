@@ -352,20 +352,7 @@ export default function LLMPage() {
               />
             </div>
 
-            {/* Queue Simulation Info */}
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-              <div className="flex items-center gap-2">
-                <Lightbulb className="h-4 w-4 text-blue-600" />
-                <div>
-                  <p className="text-sm font-medium text-blue-800">
-                    Smart Queue Simulation
-                  </p>
-                  <p className="text-xs text-blue-600">
-                    Experience the queue system interface while using fast direct API calls
-                  </p>
-                </div>
-              </div>
-            </div>
+            
 
             {/* Terminal Output */}
             {jobStatus !== 'idle' && (
