@@ -33,8 +33,6 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env
 .env.local
-
-# vercel
 .vercel
 
 # typescript
@@ -45,3 +43,4 @@ next-env.d.ts
 
 # clerk configuration (can include secrets)
 /.clerk/
+.env
