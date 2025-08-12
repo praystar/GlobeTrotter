@@ -1,46 +1,76 @@
 "use client"
 
 import Image from "next/image"
+import { Highlighter } from "@/components/magicui/highlighter";
+import { Globe } from "@/components/magicui/globe";
 import Link from "next/link"
-import { Smartphone, Globe, Languages, TrendingUp, Sparkles, Check, ArrowRight, Phone } from "lucide-react"
+import { Smartphone,Earth, IndianRupee, Shield, Sparkles, Check, ArrowRight, Phone, LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { useState, useRef, useEffect, FC } from 'react';
 
-export default function Home() {
+// A custom hook to detect if an element is in the viewport
+// We specify the type for the ref, which can be any HTMLElement, and the options.
+function useInView<T extends HTMLElement = HTMLDivElement>(options: IntersectionObserverInit = {}) {
+  const [inView, setInView] = useState<boolean>(false);
+  const ref = useRef<T | null>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(([entry]) => {
+      // Once the element is in view, set the state and disconnect
+      if (entry.isIntersecting) {
+        setInView(true);
+        observer.disconnect();
+      }
+    }, options);
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+
+    // Cleanup function to disconnect the observer when the component unmounts
+    return () => {
+      if (ref.current) {
+        observer.disconnect();
+      }
+    };
+  }, [options, ref]);
+
+  return [ref, inView] as const;
+}
+
+// Define the component using FC (Functional Component) from React
+const Home: FC = () => {
   return (
     <div className="font-sans">
       <main>
         <HeroSection />
-        <TrustedBy />
         <BenefitsSection />
         <BigPictureSection />
         <SpecsSection />
         <TestimonialSection />
-        <HowToSection />
-        <ContactCTA />
       </main>
       <SiteFooter />
     </div>
   )
 }
 
-function HeroSection() {
+const HeroSection: FC = () => {
   return (
     <section className="relative">
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-10 sm:px-6 sm:pb-16 sm:pt-14">
-        <h1 className="text-center font-serif text-[clamp(40px,7vw,96px)] leading-[0.9] tracking-tight">Browse everything.</h1>
+        <h1 className="text-center font-serif text-[clamp(40px,7vw,96px)] leading-[0.9] tracking-tight">
+          Traveling Carefree
+        </h1>
         <div className="relative mt-10 sm:mt-14">
           {/* green rounded backdrop */}
           <div className="absolute left-1/2 top-1/2 -z-10 h-[180px] w-[min(100%,900px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-[#8E9C78] sm:h-[220px]" />
           {/* tablet-like visual */}
           <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-[18px] border-[6px] border-black/70 shadow-2xl">
             <div className="relative aspect-[16/9] w-full">
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.5),rgba(255,255,255,0)),url('/globe.svg')] bg-contain bg-center bg-no-repeat" />
               <div className="absolute inset-0 grid place-items-center">
-                <div className="pointer-events-none rounded-xl bg-black/5 p-2.5 text-lg font-medium text-foreground/80 backdrop-blur-sm">
-                  78% Efficiency Improvements
-                </div>
+                <Globe />
               </div>
             </div>
           </div>
@@ -50,36 +80,39 @@ function HeroSection() {
   )
 }
 
-function TrustedBy() {
-  return (
-    <section className="border-b">
-      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        <p className="text-center text-sm text-muted-foreground">Trusted by:</p>
-        <div className="mt-4 grid grid-cols-2 items-center justify-items-center gap-6 sm:grid-cols-3 md:grid-cols-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="text-muted-foreground text-sm">Logoipsum</div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
+// Define the type for each item in the benefits array
+interface BenefitItem {
+  icon: LucideIcon;
+  title: string;
+  body: string;
 }
 
-function BenefitsSection() {
-  const items = [
-    { icon: Sparkles, title: "Amplify Insights", body: "Unlock data-driven decisions with comprehensive analytics, revealing key opportunities for strategic regional growth." },
-    { icon: Globe, title: "Control Your Global Presence", body: "Manage and track satellite offices, ensuring consistent performance and streamlined operations everywhere." },
-    { icon: Languages, title: "Remove Language Barriers", body: "Adapt to diverse markets with built-in localization for clear communication and enhanced user experience." },
-    { icon: TrendingUp, title: "Visualize Growth", body: "Generate precise, visually compelling reports that illustrate your growth trajectories across all regions." },
+const BenefitsSection: FC = () => {
+  const items: BenefitItem[] = [
+    { icon: Sparkles, title: "Amplify plans with AI", body: "Unlock relaxing trips with comprehensive plans made by AI, with chatbot and trip summaries" },
+    { icon: Earth, title: "Explore any part of the world", body: "Look for whats waiting for you in this world." },
+    { icon: IndianRupee, title: "Smart budgeting", body: "Plan your trip, to make it happen all under your budget" },
+    { icon: Shield, title: "Your Privacy, our priority", body: "We priorities your experience with utmost respect for your privacy" },
   ]
 
+  // Use the custom hook with a specific element type (section)
+  const [ref, inView] = useInView<HTMLElement>({ threshold: 0.5 });
+
   return (
-    <section id="benefits" className="border-b">
+    <section id="benefits" className="border-b" ref={ref}>
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <Badge variant="secondary" className="mb-3">Benefits</Badge>
-          <h2 className="text-pretty text-3xl font-semibold sm:text-4xl">We&apos;ve cracked the code.</h2>
-          <p className="text-muted-foreground mt-3">Area provides real insights, without the data overload.</p>
+          <h2 className="text-pretty text-3xl font-semibold sm:text-4xl">
+            {inView ? (
+              <Highlighter action="box" animationDuration={1500} color="#8E9C78">
+                Travel Anywhere with GlobeTrotter
+              </Highlighter>
+            ) : (
+              "Travel Anywhere with GlobeTrotter"
+            )}
+          </h2>
+          <p className="text-muted-foreground mt-3">GlobeTrotter provides real travel insights, without the data overload.</p>
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -100,27 +133,33 @@ function BenefitsSection() {
   )
 }
 
-function BigPictureSection() {
-  const bullets = [
-    "Spot Trends in Seconds: No more digging through numbers.",
-    "Get Everyone on the Same Page: Share easy-to-understand reports with your team.",
-    "Make Presentations Pop: Interactive maps and dashboards keep your audience engaged.",
-    "Your Global Snapshot: Get a quick, clear overview of your entire operation.",
+const BigPictureSection: FC = () => {
+  const [ref, inView] = useInView<HTMLElement>({ threshold: 0.5 });
+  const bullets: string[] = [
+    "See your whole trip at a glance. No more juggling spreadsheets; get a clear, visual overview of your itinerary.",
+    "Keep everyone on the same page. Easily share your travel plans with your companions so everyone knows what's next.",
+    "Bring your adventure to life. Visualize your journey with interactive maps and timelines that make planning fun.",
+    "Effortlessly manage your budget. Track your spending and see where your money is going with a quick, clear snapshot of your trip.",
   ]
 
+
   return (
-    <section className="border-b">
+    <section className="border-b" ref={ref}>
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-14 sm:px-6 md:grid-cols-2">
         <div className="relative order-last md:order-first">
           <div className="aspect-video w-full overflow-hidden rounded-xl border shadow-sm">
-            <div className="grid h-full w-full place-items-center bg-gradient-to-tr from-muted to-transparent">
-              <Image src="/globe.svg" alt="Landscape" width={120} height={120} className="opacity-70" />
-            </div>
+            <div className="grid h-full w-full place-items-center bg-gradient-to-tr from-muted to-transparent" />
           </div>
         </div>
         <div className="flex flex-col gap-4">
           <Badge variant="secondary" className="w-fit">See the Big Picture</Badge>
-          <h3 className="text-pretty text-2xl font-semibold sm:text-3xl">Area turns your data into clear, vibrant visuals that show you exactly what&apos;s happening in each region.</h3>
+          <h3 className="text-pretty text-2xl font-semibold sm:text-3xl">
+            {inView ? (
+              <Highlighter action="highlight" color="#8E9C78" animationDuration={1500}>
+              GlobeTrotter
+            </Highlighter>
+            ): ("GlobeTrotter")}
+             transforms your travel ideas into clear, vibrant visuals, giving you a beautiful overview of your next adventure.</h3>
           <ul className="mt-2 space-y-3">
             {bullets.map((b, i) => (
               <li key={i} className="flex items-start gap-3">
@@ -129,42 +168,44 @@ function BigPictureSection() {
               </li>
             ))}
           </ul>
-          <div className="pt-2">
-            <Button className="gap-2">Discover More <ArrowRight className="size-4" /></Button>
-          </div>
         </div>
       </div>
     </section>
   )
 }
 
-function SpecsSection() {
-  const area = [
-    "Ultra-fast browsing",
-    "Advanced AI insights",
-    "Seamless integration",
-    "Advanced AI insights",
-    "Ultra-fast browsing",
-    "Full UTF-8 support",
+// Define the props for the Column component
+interface ColumnProps {
+  title: string;
+  lines: string[];
+}
+
+const SpecsSection: FC = () => {
+  const GlobeTrotter: string[] = [
+    "Quick trip planning",
+    "Smart travel suggestions",
+    "Expense prediction",
+    "Effortless sharing",
+    "Summary generation and Chat Bot support",
   ]
-  const websurge = [
-    "Fast browsing",
-    "Basic AI recommendations",
-    "Restricts customization",
-    "Basic AI insights",
-    "Fast browsing",
-    "Potential display errors",
+  const websurge: string[] = [
+    "Slow trip planning",
+    "Limited recommendations",
+    "Manual booking required",
+    "Basic expense logging",
+    "Sharing can be tricky",
+    "Potential language errors",
   ]
-  const hyperview = [
+  const hyperview: string[] = [
     "Moderate speeds",
-    "No AI assistance",
+    "No smart suggestions",
     "Steep learning curve",
-    "No AI assistance",
-    "Moderate speeds",
-    "Partial UTF-8 support",
+    "No expense tracking",
+    "Limited sharing options",
+    "Partial language support",
   ]
 
-  const Column = ({ title, lines }: { title: string; lines: string[] }) => (
+  const Column: FC<ColumnProps> = ({ title, lines }) => (
     <Card>
       <CardContent className="p-6">
         <div className="mb-5 flex items-center gap-3">
@@ -190,12 +231,12 @@ function SpecsSection() {
       <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
         <div className="mx-auto mb-10 max-w-2xl text-center">
           <Badge variant="secondary" className="mb-3">Specs</Badge>
-          <h2 className="text-pretty text-3xl font-semibold sm:text-4xl">Why Choose Area?</h2>
-          <p className="text-muted-foreground mt-3">You need a solution that keeps up. That’s why we developed Area. A developer-friendly approach to streamline your business.</p>
+          <h2 className="text-pretty text-3xl font-semibold sm:text-4xl">Why Choose GlobeTrotter?</h2>
+          <p className="text-muted-foreground mt-3">You need a solution that keeps up. That’s why we developed GlobeTrotter. A traveller-friendly approach to get the most out of your trips.</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
-          <Column title="Area" lines={area} />
+          <Column title="GlobeTrotter" lines={GlobeTrotter} />
           <Column title="WebSurge" lines={websurge} />
           <Column title="HyperView" lines={hyperview} />
         </div>
@@ -204,7 +245,7 @@ function SpecsSection() {
   )
 }
 
-function TestimonialSection() {
+const TestimonialSection: FC = () => {
   return (
     <section className="border-b">
       <div className="mx-auto max-w-5xl px-4 py-14 sm:px-6">
@@ -214,14 +255,22 @@ function TestimonialSection() {
           </div>
           <div className="grid gap-8 p-8 sm:p-12 md:grid-cols-[1.2fr_1fr] md:items-center">
             <div className="space-y-5">
-              <p className="text-pretty text-xl font-medium sm:text-2xl">“I was skeptical, but Area has completely transformed the way I manage my business. The data visualizations are so clear and intuitive, and the platform is so easy to use. I can&apos;t imagine running my company without it.”</p>
+              <p className="text-pretty text-xl font-medium sm:text-2xl">“I was skeptical, but GlobeTrotter has completely transformed the way I plan my vacations. The visual itineraries are so clear and intuitive, and the platform is so easy to use. I can&apos;t imagine planning a trip without it.”</p>
               <div>
-                <p className="font-semibold">John Smith</p>
-                <p className="text-muted-foreground text-sm">Head of Data</p>
+                <p className="font-semibold">Prayash Pratim Baruah</p>
+                <p className="text-muted-foreground text-sm">Intern at IIT Guwahati</p>
               </div>
             </div>
             <div className="grid place-items-center">
-              <div className="aspect-square w-60 rounded-full border bg-gradient-to-br from-muted to-transparent" />
+              <div className="aspect-square w-60 rounded-full border bg-gradient-to-br from-muted to-transparent">
+                <Image
+                  src="/ChatGPT Image Aug 12, 2025, 05_30_32 AM.png" // path inside public folder
+                  alt="Prayash Pratim Baruah"
+                  width={240}
+                  height={240}
+                  className="object-cover rounded-full"
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -230,63 +279,14 @@ function TestimonialSection() {
   )
 }
 
-function HowToSection() {
-  const steps = [
-    { n: "01", title: "Get Started", body: "With our intuitive setup, you’re up and running in minutes." },
-    { n: "02", title: "Customize and Configure", body: "Adapt Area to your specific requirements and preferences." },
-    { n: "03", title: "Grow Your Business", body: "Make informed decisions to exceed your goals." },
-  ]
-  return (
-    <section id="howto" className="border-b">
-      <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <div className="mx-auto mb-10 max-w-2xl text-center">
-          <h2 className="text-pretty text-3xl font-semibold sm:text-4xl">Map Your Success</h2>
-          <div className="mt-4">
-            <Button className="gap-2">Discover More <ArrowRight className="size-4" /></Button>
-          </div>
-        </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {steps.map((s) => (
-            <Card key={s.n}>
-              <CardContent className="p-6">
-                <div className="mb-4 inline-flex items-center gap-3">
-                  <span className="inline-flex size-8 items-center justify-center rounded-full border text-sm font-semibold">{s.n}</span>
-                  <h3 className="text-lg font-semibold">{s.title}</h3>
-                </div>
-                <p className="text-muted-foreground text-sm">{s.body}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
 
-function ContactCTA() {
-  return (
-    <section id="contact" className="border-b">
-      <div className="mx-auto max-w-5xl px-4 py-14 text-center sm:px-6">
-        <h2 className="text-pretty text-2xl font-semibold sm:text-3xl">Connect with us</h2>
-        <p className="text-muted-foreground mx-auto mt-3 max-w-prose">Schedule a quick call to learn how Area can turn your regional data into a powerful advantage.</p>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-          <Button className="gap-2">Learn More <ArrowRight className="size-4" /></Button>
-          <Button variant="outline" className="gap-2" asChild>
-            <Link href="/llm"><Phone className="size-4" /> Phone</Link>
-          </Button>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function SiteFooter() {
+const SiteFooter: FC = () => {
   return (
     <footer className="border-t">
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between">
         <div className="flex items-center gap-2">
           <span className="inline-flex size-7 items-center justify-center rounded-md border"><Sparkles className="size-4" /></span>
-          <span className="font-semibold">Area</span>
+          <span className="font-semibold">GlobeTrotter</span>
         </div>
         <nav className="flex flex-wrap items-center gap-5 text-sm text-muted-foreground">
           <a href="#benefits" className="hover:underline">Benefits</a>
@@ -298,3 +298,5 @@ function SiteFooter() {
     </footer>
   )
 }
+
+export default Home;
