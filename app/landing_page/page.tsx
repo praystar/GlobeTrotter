@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -38,10 +39,24 @@ const TripCard = ({ title, country, imageSrc, imageAlt, showButton = false }: Tr
         <div className="font-semibold text-[#000000]">{title}</div>
         <div className="text-xs text-[#929292] mb-4">{country}</div>
         {showButton && (
-          <Button className="w-full px-4 py-2 text-sm rounded-full shadow-lg bg-[#485C11] hover:bg-[#8E9C78] text-[#FFFFFF] transition-transform hover:scale-105">
-            Get Itinerary
+          <Button asChild className="w-full px-4 py-2 text-sm rounded-full shadow-lg bg-[#485C11] hover:bg-[#8E9C78] text-[#FFFFFF] transition-transform hover:scale-105">
+            <Link href="/llm">Get Itinerary</Link>
           </Button>
         )}
+      </CardContent>
+    </Card>
+  );
+};
+
+const PreviousTripCard = ({ title, country }: { title: string; country: string }) => {
+  return (
+    <Card className="group w-full border-[#000000]/60 shadow-sm transition-transform duration-200 will-change-transform hover:-translate-y-1 hover:shadow-lg">
+      <CardContent className="pt-6">
+        <div className="font-semibold text-[#000000] mb-2">{title}</div>
+        <div className="text-xs text-[#929292] mb-4">{country}</div>
+        <Button asChild className="w-full px-4 py-2 text-sm rounded-full shadow-lg bg-[#485C11] hover:bg-[#8E9C78] text-[#FFFFFF] transition-transform hover:scale-105">
+          <Link href="/community">Add Review</Link>
+        </Button>
       </CardContent>
     </Card>
   );
@@ -95,8 +110,8 @@ export default function DashboardPage() {
           <p className="text-lg mb-8 max-w-2xl text-[#929292]">
             the world 
           </p>
-          <Button className="px-8 py-6 text-base rounded-full shadow-lg bg-[#485C11] hover:bg-[#8E9C78] text-[#FFFFFF] transition-transform hover:scale-105">
-            Plan New Trip
+          <Button asChild className="px-8 py-6 text-base rounded-full shadow-lg bg-[#485C11] hover:bg-[#8E9C78] text-[#FFFFFF] transition-transform hover:scale-105">
+            <Link href="/user_trip_listing">My Listings</Link>
           </Button>
         </div>
       </section>
@@ -128,12 +143,10 @@ export default function DashboardPage() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 w-full">
           {previousTrips.map((trip, index) => (
-            <TripCard
+            <PreviousTripCard
               key={`prev-${index}`}
               title={trip.title}
               country={trip.country}
-              imageAlt={trip.imageAlt}
-              showButton={false}
             />
           ))}
         </div>

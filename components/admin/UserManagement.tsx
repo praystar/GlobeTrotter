@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Edit, Trash2, Eye } from "lucide-react"
+import { Trash2 } from "lucide-react"
 
 interface User {
   id: number
@@ -19,16 +19,12 @@ interface User {
 
 interface UserManagementProps {
   users: User[]
-  onEditUser?: (user: User) => void
   onDeleteUser?: (userId: number) => void
-  onViewUser?: (user: User) => void
 }
 
 export function UserManagement({ 
   users, 
-  onEditUser, 
-  onDeleteUser, 
-  onViewUser 
+  onDeleteUser
 }: UserManagementProps) {
   return (
     <Card style={{ backgroundColor: '#FFFFFF', borderColor: '#8E9C78' }}>
@@ -72,28 +68,6 @@ export function UserManagement({
                   <div className="text-sm mt-1" style={{ color: '#929292' }}>{user.trips} trips</div>
                 </div>
                 <div className="flex gap-2">
-                  {onViewUser && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      style={{ color: '#8E9C78' }}
-                      onClick={() => onViewUser(user)}
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {onEditUser && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      style={{ color: '#8E9C78' }}
-                      onClick={() => onEditUser(user)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
                   {onDeleteUser && (
                     <Button
                       variant="ghost"

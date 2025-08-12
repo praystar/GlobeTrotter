@@ -12,17 +12,19 @@ function App() {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen p-4 gap-4 bg-[#DFECC6] box-border">
-      {/* Left pane: MapView */}
-      <div className="flex-1 min-w-0 rounded-2xl overflow-hidden bg-white shadow-lg h-[60vh] min-h-[300px] md:h-auto">
-        <MapView center={mapCenter} />
-      </div>
+    <main className="min-h-screen bg-[#DFECC6] pt-20">
+      <div className="flex flex-col md:flex-row h-[calc(100vh-5rem)] p-4 gap-4 box-border">
+        {/* Left pane: MapView */}
+        <div className="flex-1 min-w-0 rounded-2xl overflow-hidden bg-white shadow-lg h-[60vh] min-h-[300px] md:h-auto">
+          <MapView center={mapCenter} />
+        </div>
 
-      {/* Right pane: CalendarView */}
-      <div className="flex-1 min-w-0 rounded-2xl overflow-hidden bg-white shadow-lg p-6 flex items-start justify-center min-h-[400px]">
-        <CalendarView onCitySelect={handleCitySelect} />
+        {/* Right pane: CalendarView */}
+        <div className="flex-1 min-w-0 rounded-2xl overflow-hidden bg-white shadow-lg p-6 flex items-start justify-center min-h-[400px]">
+          <CalendarView onCitySelect={handleCitySelect} />
+        </div>
       </div>
-    </div>
+    </main>
   );
 }
 

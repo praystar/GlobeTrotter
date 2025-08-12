@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { Calendar, MapPin } from "lucide-react";
 
 type Trip = {
@@ -23,7 +23,7 @@ const tripsCompleted: Trip[] = [
   { title: "Iceland Northern Lights", destination: "Reykjavik", startDate: "Dec 15, 2024", endDate: "Dec 19, 2024" },
 ];
 
-function TripCard({ trip, showEdit }: { trip: Trip; showEdit?: boolean }) {
+function TripCard({ trip }: { trip: Trip }) {
   return (
     <Card className="border-[#000000] bg-[#FFFFFF]">
       <CardContent className="p-5">
@@ -40,12 +40,7 @@ function TripCard({ trip, showEdit }: { trip: Trip; showEdit?: boolean }) {
               <span>{trip.startDate}{trip.endDate ? ` - ${trip.endDate}` : ""}</span>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button className="rounded-full bg-[#485C11] text-[#FFFFFF] hover:bg-[#8E9C78]">View</Button>
-            {showEdit && (
-              <Button variant="outline" className="rounded-full border-[#000000] text-[#485C11] hover:bg-[#DFECC6]">Edit</Button>
-            )}
-          </div>
+
         </div>
       </CardContent>
     </Card>
@@ -71,7 +66,7 @@ export default function UserTripListingPage() {
           <section>
             <h2 className="mb-4 text-2xl font-semibold">Upcoming</h2>
             <div className="grid grid-cols-1 gap-4">
-              {tripsUpcoming.map((t, i) => <TripCard key={i} trip={t} showEdit />)}
+              {tripsUpcoming.map((t, i) => <TripCard key={i} trip={t} />)}
             </div>
           </section>
 
