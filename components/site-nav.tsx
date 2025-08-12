@@ -35,7 +35,9 @@ export function SiteNav() {
           <SignedOut>
             <Button
               className="h-10 rounded-full px-5"
-              onClick={() => openSignIn()}
+              // SiteNav or wherever user triggers sign-in
+              onClick={() => openSignIn({ redirectUrl: `${window.location.origin}/auth-redirect` })}
+
             >
               Login
             </Button>
